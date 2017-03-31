@@ -28,7 +28,16 @@ def is_other(uchar):
         return False
 
 
-def str_preprocess(str, expression):
+def expression_extract(str, expression):
+    '''
+    The function aims to split word and expressions
+    str: the string you want to split
+    expression: the list contain all expressions in the dictionary
+    Return: a string list and a expression list.
+    For example,
+    Input: str = 我很开心(^_^)出去玩^_^, expression = [^_^,(^_^),...]
+    Output: str_list = ['我很开心', '出去玩'], exp_list = [(^_^), ^_^]
+    '''
     pos = 0
     exp_list = []
     str_list = []
