@@ -1,0 +1,14 @@
+# EmotionDetection
+dictionary: contains all dictionaries
+reference: references to our project
+src/preprocess.py: some examples about how to get data
+
+Dataset: /home/ubuntu/lcc/Documents/bilibili_spider/dataset
+In the dataset, each folder 'avid' is corresponding to one video in www.bilibili.com/video/av + 'avid'
+website:
+*.dan: contains Danmuku
+*.cmt: contains Comment
+*.vid: contains the information of videos
+*.xml: the raw file of Danmuku
+*.html: the orignal html of corresponding web page
+*.flv or *.mp4: the video
