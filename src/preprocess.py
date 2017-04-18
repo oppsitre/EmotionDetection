@@ -6,10 +6,10 @@ import math
 from sklearn.cluster import KMeans
 import numpy as np
 def is_chinese(str):
-	for uchar in str:
-		if not ('\u4e00' <= uchar<='\u9fff'):
-			return False
-	return True
+    for uchar in str:
+        if not ('\u4e00' <= uchar<='\u9fff'):
+            return False
+    return True
 
 # 判断一个unicode是否是数字
 def is_number(uchar):
@@ -148,15 +148,14 @@ class Comment:
         '''
         aid: the av id of each video
         dataset_dir:  the directory of dataset.
-        '''
+        self.content = [[Comment], [Comment], ...]
+'''
         self.aid = aid
         self.dataset_dir = dataset_dir
         if not self.dataset_dir.endswith('/'):
             self.dataset_dir += '/'
         self.content = self.read(aid)
-        '''
-        For example, self.content = [[Comment], [Comment], ...]
-        '''
+
     def dfs(self, root):
         cmts = []
         if root is None:
@@ -174,97 +173,108 @@ class Comment:
         return cmts
 
 class Danmuku:
-	def __init__(self, aid, dataset_dir):
-		'''
-		aid: the av id of each video
-		dataset_dir:  the directory of dataset.
-		'''
-		self.aid = aid
-		self.dataset_dir = dataset_dir
-		if not self.dataset_dir.endswith('/'):
-		    self.dataset_dir += '/'
-		self.content = self.read(aid)
-		'''
-		For example, self.content = [['danmu', offset in the video, the absolute time published],...]
-		'''
+    def __init__(self, aid, dataset_dir):
+        '''
+        aid: the av id of each video
+        dataset_dir:  the directory of dataset.
+        '''
+        self.aid = aid
+        self.dataset_dir = dataset_dir
+        if not self.dataset_dir.endswith('/'):
+            self.dataset_dir += '/'
+        self.content = self.sort(self.read(aid))
+        '''
+        For example, self.content = [['danmu', offset in the video, the absolute time published],...]
+        '''
 
-	def read(self, aid):
-		dan = []
-		with open(self.dataset_dir + aid + '/' + aid + '.dan', 'r') as f:
-			for line in f:
-				line = line.strip().split('\t')
-				dan.append((line[0], float(line[1]), line[2]))
-		return dan
+    def read(self, aid):
+        dan = []
+        with open(self.dataset_dir + aid + '/' + aid + '.dan', 'r') as f:
+            for line in f:
+                line = line.strip().split('\t')
+                dan.append((line[0], float(line[1]), line[2]))
+        return dan
 
-	def sort(self, content):
-		con = sorted(content, key = lambda x: x[1])
-		return con
+    def sort(self, content):
+        con = sorted(content, key = lambda x: x[1])
+        return con
 
-	def split(self, content = None, part_num = 50):
-		if content == None:
-			content = self.content
-		content = self.sort(content)
-		min_t = content[0][1]
-		max_t = content[-1][1]
-		step = (max_t - min_t) / part_num
-		pos = min_t
-		parts = [0 for i in range(part_num)]
-		tmp = 0
-		idx = 0
-		for c in content:
-			if c[1] < pos + step:
-				tmp += 1
-			else:
-				parts[idx] = tmp
-				idx += 1
-				tmp = 0
-				pos = pos + step
-		print(len(parts), parts)
-		plt.plot(range(part_num), parts)
-		plt.show()
+    # def split(self, content = None, part_num = 50):
+    #     if content == None:
+    #         content = self.content
+    #     min_t = content[0][1]
+    #     max_t = content[-1][1]
+    #     step = (max_t - min_t) / part_num
+    #     pos = min_t
+    #     parts = [0 for i in range(part_num)]
+    #     tmp = 0
+    #     idx = 0
+    #     for c in content:
+    #         if c[1] < pos + step:
+    #             tmp += 1
+    #         else:
+    #             parts[idx] = tmp
+    #             idx += 1
+    #             tmp = 0
+    #             pos = pos + step
+    #     print(len(parts), parts)
+    #     plt.plot(range(part_num), parts)
+    #     plt.show()
 
-	def cluster(self, content = None, part_num = 10):
-		if content == None:
-			content = self.content
-		content = self.sort(content)
-		offset = np.array([c[1] for c in content])
-		offset = np.reshape(offset, (len(offset), 1))
-		kmeans = KMeans(n_clusters=part_num).fit(offset)
-		order = {}
-		idx = 0
-		for i in kmeans.labels_:
-			if not(i in order):
-				order[i] = idx
-				idx += 1
-		labels = [order[item] for idx, item in enumerate(kmeans.labels_)]
-		uni, parts = np.unique(labels, return_counts = True)
-		plt.plot(range(part_num), parts)
-		plt.show()
-def get_all_text():
-	num = 0
-	with open('texts.txt', 'w') as con:
-		list_dirs = os.walk('../dataset/')
-		for root, dirs, files in list_dirs:
-			for f in files:
-				print(os.path.join(root, f))
-				if f.endswith('.dan'):
-					dan = Danmuku(f[:-4], '../dataset/')
-					# print(dan.content)
-					for c in dan.content:
-						# print(c)
-						con.write(c[0] + '\n')
-					num += 1
-				if f.endswith('.cmt'):
-					dan = Comment(f[:-4], '../dataset/')
-					for c in dan.content:
-						con.write(c + '\n')
-					num += 1
+    def cluster(self, content = None, part_num = 10):
+        if content == None:
+            content = self.content
+        offset = np.array([c[1] for c in content])
+        offset = np.reshape(offset, (len(offset), 1))
+        kmeans = KMeans(n_clusters=part_num).fit(offset)
+        order = {}
+        idx = 0
+        for i in kmeans.labels_:
+            if not(i in order):
+                order[i] = idx
+                idx += 1
+        labels = [order[item] for idx, item in enumerate(kmeans.labels_)]
+        # uni, parts = np.unique(labels, return_counts = True)
+        # # plt.plot(range(part_num), parts)
+        # # plt.show()
+        return labels
 
-	print('Num:', num)
+def get_all_text(f_list, type = 'cluster', cluster_num = 10):
+    num = 0
+    doc_id = open('doc2id.txt', 'w')
+    with open('texts.txt', 'w') as con:
+        list_dirs = os.walk('../dataset/')
+        for root, dirs, files in list_dirs:
+            for f in files:
+                if f[:-4] not in f_list:
+                    continue
+                print(os.path.join(root, f))
+                if f.endswith('.dan'):
+                    dan = Danmuku(f[:-4], '../dataset/')
+                    labels = dan.cluster(part_num = cluster_num)
+                    for i in range(cluster_num):
+                        doc_id.write(f[:-4] + '\t' + str(i+1) + '\t' + str(num) + '\n')
+                        num += 1
+                        tmp = ''
+                        for j, c in enumerate(dan.content):
+                            if labels[j] == i:
+                                tmp += c[0]
+                        con.write(tmp + '\n')
+                if f.endswith('.cmt'):
+                    cmt = Comment(f[:-4], '../dataset/')
+                    tmp = ''
+                    for c in dan.content:
+                        tmp += c[0]
+                    doc_id.write(f[:-4] + '\t' + '0' + '\t' + str(num) + '\n')
+                    con.write(tmp + '\n')
+                    num += 1
+    doc_id.close()
+
+    print('Num:', num)
 
 if __name__ == '__main__':
-    # cmt = Comment('4704057', '../dataset/')
-    # print(cmt.content)
+    cmt = Comment('4704057', '../dataset/')
+    get_all_text()
     # dan = Danmuku('4704057', '../dataset/')
     # str = '我很开心^_^出去玩^_^'
     # exp_list = express_read()
@@ -273,5 +283,4 @@ if __name__ == '__main__':
 	# v = Word('我是', 1)
 	# print(type(v) is Word)
 	# emotion_dic_read()
-	# get_all_text()
-	process()
+	# process()
